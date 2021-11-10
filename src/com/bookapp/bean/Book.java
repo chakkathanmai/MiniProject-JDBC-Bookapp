@@ -5,16 +5,11 @@ public class Book {
       String title,author,category;
       int bookid;
       int price;
-      
-	public Book(String title, String author, String category, int bookid, int price) {
-		super();
-		this.title = title;
-		this.author = author;
-		this.category = category;
-		this.bookid = bookid;
-		this.price = price;
-	}
 	
+	public Book() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public String getTitle() {
 		
 	    return title;
