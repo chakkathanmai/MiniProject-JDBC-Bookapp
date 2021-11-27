@@ -13,6 +13,7 @@ import com.bookapp.dao.ModelDAO;
 import com.bookapp.exception.AuthorNotFoundException;
 import com.bookapp.exception.BookNotFoundException;
 import com.bookapp.exception.CategoryNotFoundException;
+import com.bookapp.exception.IdNotFoundException;
 
 public class BookImpl implements BookInter {
 
@@ -32,7 +33,7 @@ public class BookImpl implements BookInter {
 		try {
 			String sql = "insert into Book values(?,?,?,?,?)";
 			connection = ModelDAO.openConnection();
-			stmt = connection.prepareStatement(sql, ResultSet.CONCUR_UPDATABLE, ResultSet.TYPE_SCROLL_INSENSITIVE);
+			stmt = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 			stmt.setString(1, book.getTitle());
 			stmt.setString(2, book.getAuthor());
 			stmt.setString(3, book.getCategory());
@@ -55,7 +56,7 @@ public class BookImpl implements BookInter {
 		}
 	}
 	@Override
-	public boolean deleteBook(int bookid) throws BookNotFoundException {
+	public void deleteBook(int bookid) throws BookNotFoundException {
 		// TODO Auto-generated method stub
 		boolean val = false;
 		try {
@@ -64,6 +65,7 @@ public class BookImpl implements BookInter {
 			stmt = connection.prepareStatement(delsql, ResultSet.CONCUR_UPDATABLE, ResultSet.TYPE_SCROLL_INSENSITIVE);
 			stmt.setInt(1, bookid);
 			val = stmt.execute();
+			System.out.println("Book Deleted");
 
 		} catch (SQLException e) {
 
@@ -82,7 +84,7 @@ public class BookImpl implements BookInter {
 		if (val == true) {
 			throw new BookNotFoundException("Invalid Book id");
 		}
-		return val;
+		return;
 	}
 
 	@Override
@@ -236,4 +238,43 @@ public class BookImpl implements BookInter {
 		}
 		return getBooksbyCategory;
 	}
+	@Override
+	public List<Book> getBookById(int id) throws IdNotFoundException {
+		List<Book> getBookById=new ArrayList<Book>();
+		try {
+			String selsql1 = "select * from Book where bookId=?";
+			connection = ModelDAO.openConnection();
+			stmt = connection.prepareStatement(selsql1, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			stmt.setInt(1, id);
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				Book book = new Book();
+				book.setTitle(rs.getString(1));
+				book.setAuthor(rs.getString(2));
+				book.setCategory(rs.getString(3));
+				book.setBookid(rs.getInt(4));
+				book.setPrice(rs.getInt(5));
+				getBookById.add(book);
+			}
+			if (getBookById.isEmpty()) {
+				throw new IdNotFoundException("Invalid book id");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+
+				if (stmt != null) {
+					stmt.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			ModelDAO.closeConnection();
+		}
+		return getBookById;
+	}
+	
 }
